@@ -77,7 +77,6 @@ public class Mouse_Controller : MonoBehaviour {
     }
 
 
-
     void GetPathToPosition()
     {
         // FIX THIS! ** Here we can add a check to make sure that the tile we just right clicked on is a WALKABLE tile

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class Battle_Loader : MonoBehaviour {
 
@@ -9,11 +10,13 @@ public class Battle_Loader : MonoBehaviour {
     public static Battle_Loader Instance { get; protected set; }
 
     // FIX THIS! None of the character data should be hardcoded!
-    Character[] playerSquad;
+    public PC_Character[] playerSquad { get; protected set; }
     public bool isPlayerSquadLoaded { get; protected set; }
 
-    Character[] enemySquad;
+    NPC_Character[] enemySquad;
     public bool isEnemiesLoaded { get; protected set; }
+
+    public Dictionary<string, Character_Handler> playerSquadMap { get; protected set; }
 
     void OnEnable()
     {
@@ -36,6 +39,7 @@ public class Battle_Loader : MonoBehaviour {
 
         playerSquad[0].InitStats(20, 6, 7, 5, 9, 6);
         playerSquad[1].InitStats(20, 5, 10, 5, 7, 8);
+
     }
 
     void InitEnemySquad()
@@ -55,13 +59,19 @@ public class Battle_Loader : MonoBehaviour {
     {
         // Each class will have a unique sprite, so we spawn a gameobject by the character class.
         float x = 0;
-        foreach(PC_Character character in playerSquad)
+
+        // Init dictionary to store references to Character Handlers
+        playerSquadMap = new Dictionary<string, Character_Handler>();
+
+        foreach (PC_Character character in playerSquad)
         {
             GameObject pc = ObjectPool.instance.GetObjectForType(character.pc_class.ToString(), true, new Vector3(x, 0, 0));
 
             pc.GetComponent<Character_Handler>().SetCharacter(character);
 
             x += 3;
+
+            playerSquadMap.Add(character.Name, pc.GetComponent<Character_Handler>());
         }
 
         isPlayerSquadLoaded = true;

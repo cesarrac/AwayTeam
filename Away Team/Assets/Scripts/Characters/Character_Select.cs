@@ -16,7 +16,7 @@ public class Character_Select : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
 
-            Battle_Controller.Instance.SelectCharacter(char_handler);
+            Battle_Controller.Instance.SelectPCCharacter(char_handler.myChar.Name);
 
             // Display info in portrait panel
             UI_Manager.Instance.DisplaySelectedCharacter(char_handler.myChar.Name);

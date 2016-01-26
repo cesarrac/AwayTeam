@@ -22,6 +22,8 @@ public class Battle_Controller : MonoBehaviour {
     public int TotalNPCChars { get { return totalNPCcharacters; } set { totalNPCcharacters = value; } }
     int activeNPCChars;
 
+    int PCSquadIndex = 0;
+
 
     void OnEnable()
     {
@@ -42,29 +44,32 @@ public class Battle_Controller : MonoBehaviour {
         activeNPCChars = total;
     }
 
-    public void SelectCharacter(Character_Handler char_handler)
+    public void SelectPCCharacter(string charName)
     {
-    
-        // Pool any selection circles that are already active
-        if (selectionCircle != null)
+        if (Battle_Loader.Instance.playerSquadMap.ContainsKey(charName))
         {
-            ObjectPool.instance.PoolObject(selectionCircle);
+            // Set the character handler
+            selectedCharacter = Battle_Loader.Instance.playerSquadMap[charName];
+
+            // Pool any selection circles that are already active
+            if (selectionCircle != null)
+            {
+                ObjectPool.instance.PoolObject(selectionCircle);
+            }
+
+            // Get a new Selecition circle from Pool and place under selected character
+            selectionCircle = ObjectPool.instance.GetObjectForType("Selection Circle", true, selectedCharacter.transform.position);
+
+            // Center camera on Selected character
+            Camera_Controller.Instance.CenterOnCharacter(selectedCharacter.transform.position);
+
+            // Set the path controller
+            selectedPathController = selectedCharacter.path_controller;
+
+            // Display starting AP
+            UI_Manager.Instance.DisplayCharacterAP(selectedCharacter.currActionPoints);
         }
-        
-        // Get a new Selecition circle from Pool and place under selected character
-        selectionCircle = ObjectPool.instance.GetObjectForType("Selection Circle", true, char_handler.transform.position);
-
-        // Center camera on Selected character
-        Camera_Controller.Instance.CenterOnCharacter(char_handler.transform.position);
-
-        // Set the path controller
-        selectedPathController = char_handler.path_controller;
-
-        // Set the character handler
-        selectedCharacter = char_handler;
-
-        // Display starting AP
-        UI_Manager.Instance.DisplayCharacterAP(selectedCharacter.currActionPoints);
+      
     }
 
     public void DisplayCursor(Vector3 position)
@@ -195,6 +200,15 @@ public class Battle_Controller : MonoBehaviour {
             {
                 // Start enemy's turn
                 Battle_StateManager.Instance.EndPlayerTurn();
+            }
+            else
+            {
+                // Select the next character
+                PCSquadIndex++;
+                if (PCSquadIndex < Battle_Loader.Instance.playerSquad.Length)
+                {
+                    SelectPCCharacter(Battle_Loader.Instance.playerSquad[PCSquadIndex].Name);
+                }
             }
         }
     }
