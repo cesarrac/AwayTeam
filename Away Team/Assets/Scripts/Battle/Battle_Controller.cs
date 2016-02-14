@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class Battle_Controller : MonoBehaviour {
 
@@ -29,9 +30,14 @@ public class Battle_Controller : MonoBehaviour {
     int npcSquadIndex = 0;
     public int NPCSquadIndex { get { return npcSquadIndex; } set { npcSquadIndex = value; } }
 
+    public Dictionary<Vector2, Character_Handler> PCPositionsMap { get; protected set; }
+    public Dictionary<Vector2, Enemy_Handler> NPCPositionsMap { get; protected set; }
+
     void Awake()
     {
         Instance = this;
+        PCPositionsMap = new Dictionary<Vector2, Character_Handler>();
+        NPCPositionsMap = new Dictionary<Vector2, Enemy_Handler>();
     }
 
     public void InitPCCharacters(int total)
@@ -125,6 +131,40 @@ public class Battle_Controller : MonoBehaviour {
       
     }
 
+    public void SetNewPCPosition(Vector2 newPos, Character_Handler pc)
+    {
+        if (!PCPositionsMap.ContainsKey(newPos))
+        {
+            PCPositionsMap.Add(newPos, pc);
+            Debug.Log("BATTLE CONTROL: Set new PC position at " + newPos);
+        }
+    }
+
+    public void ReSetPCPosition(Vector2 oldPos, Vector2 newPos, Character_Handler pc)
+    {
+        if (PCPositionsMap.ContainsKey(oldPos))
+        {
+            PCPositionsMap.Remove(oldPos);
+            Debug.Log("BATTLE CONTROL: Removed PC position at " + oldPos);
+
+            SetNewPCPosition(newPos, pc);
+        }
+        else
+        {
+            SetNewPCPosition(newPos, pc);
+        }
+    }
+
+    public Character_Handler GetPCAtVector2(Vector2 pos)
+    {
+        if (PCPositionsMap.ContainsKey(pos))
+        {
+            return PCPositionsMap[pos];
+        }
+        else
+            return null;
+    }
+
 
     public void StartEnemyTurn()
     {
@@ -161,6 +201,44 @@ public class Battle_Controller : MonoBehaviour {
             Battle_StateManager.Instance.EndEnemyTurn();
         }
     }
+
+
+    public void SetNewNPCPosition(Vector2 newPos, Enemy_Handler NPC)
+    {
+        if (!NPCPositionsMap.ContainsKey(newPos))
+        {
+            NPCPositionsMap.Add(newPos, NPC);
+            Debug.Log("BATTLE CONTROL: Set new NPC position at " + newPos);
+        }
+    }
+
+    public void ReSetNPCPosition(Vector2 oldPos, Vector2 newPos, Enemy_Handler NPC)
+    {
+        if (NPCPositionsMap.ContainsKey(oldPos))
+        {
+            NPCPositionsMap.Remove(oldPos);
+            Debug.Log("BATTLE CONTROL: Removed NPC position at " + oldPos);
+
+            SetNewNPCPosition(newPos, NPC);
+        }
+        else
+        {
+            SetNewNPCPosition(newPos, NPC);
+        }
+    }
+
+    public Enemy_Handler GetNPCAtVector2(Vector2 pos)
+    {
+        if (NPCPositionsMap.ContainsKey(pos))
+        {
+            return NPCPositionsMap[pos];
+        }
+        else
+            return null;
+    }
+
+
+
 
 
     public void StopMovement()

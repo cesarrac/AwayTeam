@@ -29,14 +29,21 @@ public class Enemy_BattleController : MonoBehaviour {
         {
             for (int y = originY - range; y < originY + range; y++)
             {
-               foreach(Character_Handler pc in Battle_Loader.Instance.playerSquadMap.Values)
+                //foreach(Character_Handler pc in Battle_Loader.Instance.playerSquadMap.Values)
+                // {
+                //     if (pc.GetCurrentTileCoords() == new Vector2(x, y))
+                //     {
+                //         Debug.Log("ENEMY: Found target at " + new Vector2(x, y));
+                //         currTarget = pc;
+                //         return true;
+                //     }
+                // }
+                currTarget = Battle_Controller.Instance.GetPCAtVector2(new Vector2(x, y));
+
+                if (currTarget != null)
                 {
-                    if (pc.GetCurrentTileCoords() == new Vector2(x, y))
-                    {
-                        Debug.Log("ENEMY: Found target at " + new Vector2(x, y));
-                        currTarget = pc;
-                        return true;
-                    }
+                    Debug.Log("ENEMY: Found target at " + new Vector2(x, y));
+                    return true;
                 }
             }
         }

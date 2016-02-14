@@ -13,6 +13,8 @@ public class Enemy_Handler : MonoBehaviour {
 
     Enemy_BattleController battle_control;
 
+    Vector2 currBattlePosition;
+
     public void GetRange()
     {
         path_controller = GetComponent<PathController>();
@@ -51,6 +53,9 @@ public class Enemy_Handler : MonoBehaviour {
 
         // Reset Action Points
         ResetActionPoints();
+
+        // Set Battle Position at start
+        SetBattlePosition(transform.position);
 
         StartThinkingNextDecision();
 
@@ -182,6 +187,9 @@ public class Enemy_Handler : MonoBehaviour {
     {
         GetComponent<SpriteRenderer>().color = Color.gray;
         GetCurrentTileCoords();
+
+        // Re Set the ending Battle Position
+        SetBattlePosition(transform.position);
     }
 
 
@@ -193,4 +201,30 @@ public class Enemy_Handler : MonoBehaviour {
         return new Vector2(tileCoordX, tileCoordY);
     }
 
+
+    public void SetBattlePosition(Vector2 pos)
+    {
+        if (currBattlePosition != null)
+        {
+            // If != null there was a position set before this was called.
+
+            // Give the battle controller the last position and the current position...
+            Battle_Controller.Instance.ReSetNPCPosition(currBattlePosition, pos, this);
+
+            // ...then store the current position to later pass it to the Battle Controller as the last position.
+            currBattlePosition = pos;
+        }
+        else
+        {
+            // If = null then this is the first time setting a position.
+
+            // Pass the new position to the Battle Controller ...
+            Battle_Controller.Instance.SetNewNPCPosition(pos, this);
+
+            // ... and store the new position as the current position.
+            currBattlePosition = pos;
+        }
+
+
+    }
 }
