@@ -120,7 +120,7 @@ public class Pathfinding : MonoBehaviour
 
     Vector3[] RetracePath(Node startNode, Node endNode)
     {
-        UnityEngine.Debug.Log("Path Start: " + startNode.worldPosition + " Path End: " + endNode.worldPosition);
+        //UnityEngine.Debug.Log("Path Start: " + startNode.worldPosition + " Path End: " + endNode.worldPosition);
         List<Node> path = new List<Node>();
         Node currNode = endNode;
 

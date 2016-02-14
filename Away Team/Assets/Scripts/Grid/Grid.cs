@@ -139,7 +139,7 @@ public class Grid : MonoBehaviour
         //    y = 0;
         //}
 
-        Debug.Log("Node from world point x,y" + x + "," + y);
+       // Debug.Log("Node from world point x,y" + x + "," + y);
 
 
         return path_grid[x, y];

@@ -9,23 +9,27 @@ public class Battle_Controller : MonoBehaviour {
 
     public PathController selectedPathController { get; protected set; }
     public Character_Handler selectedCharacter { get; protected set; }
+    public Enemy_Handler selectedNPC { get; protected set; }
 
-    GameObject selectionCircle, pathEnd;
-
-    Enemy_Handler currEnemy;
+    public GameObject selectionCircle { get; protected set; }
 
     int totalPCcharacters;
     public int TotalPCChars { get { return totalPCcharacters; } set { totalPCcharacters = value; } }
     int activePCChars;
+    public int ActivePCChars { get { return activePCChars; } set { activePCChars = value; } }
 
     int totalNPCcharacters;
     public int TotalNPCChars { get { return totalNPCcharacters; } set { totalNPCcharacters = value; } }
     int activeNPCChars;
+    public int ActiveNPCChars { get { return activeNPCChars; } set { activeNPCChars = value; } }
 
-    int PCSquadIndex = 0;
+    int pcSquadIndex = 0;
+    public int PCSquadIndex { get { return pcSquadIndex; } set { pcSquadIndex = value; } }
 
+    int npcSquadIndex = 0;
+    public int NPCSquadIndex { get { return npcSquadIndex; } set { npcSquadIndex = value; } }
 
-    void OnEnable()
+    void Awake()
     {
         Instance = this;
     }
@@ -44,91 +48,122 @@ public class Battle_Controller : MonoBehaviour {
         activeNPCChars = total;
     }
 
-    public void SelectPCCharacter(string charName)
+
+    public void StartPlayerTurn()
     {
-        if (Battle_Loader.Instance.playerSquadMap.ContainsKey(charName))
-        {
-            // Set the character handler
-            selectedCharacter = Battle_Loader.Instance.playerSquadMap[charName];
+        PCSquadIndex = 0;
+        ActivePCChars = totalPCcharacters;
+        // null the selected player
+        selectedCharacter = null;
 
-            // Pool any selection circles that are already active
-            if (selectionCircle != null)
-            {
-                ObjectPool.instance.PoolObject(selectionCircle);
-            }
-
-            // Get a new Selecition circle from Pool and place under selected character
-            selectionCircle = ObjectPool.instance.GetObjectForType("Selection Circle", true, selectedCharacter.transform.position);
-
-            // Center camera on Selected character
-            Camera_Controller.Instance.CenterOnCharacter(selectedCharacter.transform.position);
-
-            // Set the path controller
-            selectedPathController = selectedCharacter.path_controller;
-
-            // Display starting AP
-            UI_Manager.Instance.DisplayCharacterAP(selectedCharacter.currActionPoints);
-        }
-      
+        ChooseWhatPCToSelect();
+        Debug.Log("Starting Player Turn!");
     }
 
-    public void DisplayCursor(Vector3 position)
+    void ChooseWhatPCToSelect()
     {
-        if (selectedPathController != null && selectedCharacter != null)
+        if (Battle_StateManager.Instance._state == BattleState.PLAYER_TURN && selectedCharacter == null)
         {
-            if (pathEnd != null)
+            // Select the first character in the player squad that is still alive (still in the squad map)
+            if (Battle_Loader.Instance.playerSquadMap.Count > 0)
             {
-                ObjectPool.instance.PoolObject(pathEnd);
+                for (int i = 0; i < Battle_Loader.Instance.playerSquad.Length; i++)
+                {
+                    if (Battle_Loader.Instance.playerSquadMap.ContainsKey(Battle_Loader.Instance.playerSquad[i].Name))
+                    {
+                        SelectPCCharacter(Battle_Loader.Instance.playerSquad[i].Name);
+                        break;
+                    }
+                }
             }
-
-            pathEnd = ObjectPool.instance.GetObjectForType("PathEnd", true, position);
-
-
-            if (CalcDistanceToCursor(selectedPathController.transform.position) > selectedPathController.GetCurMovePoints())
-            {
-                pathEnd.GetComponent<SpriteRenderer>().color = Color.red;
-            }
-            else if (Mouse_Controller.Instance.MouseOverEnemy && CalcDistanceToCursor(selectedPathController.transform.position) <= selectedPathController.GetCurMovePoints())
-            {
-                pathEnd.GetComponent<SpriteRenderer>().color = Color.cyan;
-            }
-              
             else
             {
-                pathEnd.GetComponent<SpriteRenderer>().color = Color.white;
+                Battle_StateManager.Instance.Lose();
             }
         }
     }
 
-    public int CalcDistanceToCursor(Vector3 origin)
+    public void SelectPCCharacter(string charName)
     {
-        var distance = Vector2.Distance(origin, pathEnd.transform.position);
-        return Mathf.FloorToInt(distance);
-    }
-
-
-    public void Move(Vector3 pathTarget)
-    {
-        if (selectedPathController != null && selectedCharacter != null)
+        if (Battle_Loader.Instance.playerSquadMap.Count > 0)
         {
-            if (selectedCharacter.currActionPoints > 0 && selectedPathController.GetCurMovePoints() > 0)
+            if (Battle_Loader.Instance.playerSquadMap.ContainsKey(charName))
             {
-                selectedPathController.RequestPath(pathTarget);
+                // Set the character handler
+                selectedCharacter = Battle_Loader.Instance.playerSquadMap[charName];
 
-
+                // Pool any selection circles that are already active
                 if (selectionCircle != null)
                 {
                     ObjectPool.instance.PoolObject(selectionCircle);
                 }
 
-                // Subtract an Action Point
-                TakeActionPoint();
+                // Get a new Selection circle from Pool and place under selected character
+                selectionCircle = ObjectPool.instance.GetObjectForType("Selection Circle", true, selectedCharacter.transform.position);
+
+                // Center camera on Selected character
+                Camera_Controller.Instance.CenterOnCharacter(selectedCharacter.transform.position);
+
+                // Set the path controller
+                selectedPathController = selectedCharacter.path_controller;
+
+                // Start the path cursor display
+                Player_BattleController.Instance.StartPathCursor();
+
+                // Reset its Start of Turn values
+                selectedCharacter.StartTurn();
+
+                // Display starting AP
+                UI_Manager.Instance.DisplayCharacterAP(selectedCharacter.currActionPoints);
             }
-    
+        }
+        else
+        {
+            Battle_StateManager.Instance.Lose();
+        }
+
+      
+    }
+
+
+    public void StartEnemyTurn()
+    {
+        NPCSquadIndex = 0;
+        activeNPCChars = totalNPCcharacters;
+        SelectNPCCharacter();
+    }
+
+    public void ContinueEnemyTurn()
+    {
+        // Here we check if there are any enemies left in the NPC Squad
+
+        // If there are, select next one...
+
+        // If not, go to Player's turn.
+    }
+
+    public void SelectNPCCharacter()
+    {
+        // Get the enemy using the NPC Squad Index
+        if (Battle_Loader.Instance.enemySquadMap.ContainsKey(NPCSquadIndex))
+        {
+            // Set the enemy handler
+            selectedNPC = Battle_Loader.Instance.enemySquadMap[NPCSquadIndex];
+
+            // Set the path controller
+            selectedPathController = selectedNPC.path_controller;
+
+            // Start their turn
+            selectedNPC.StartTurn();
+        }
+        else
+        {
+            Battle_StateManager.Instance.EndEnemyTurn();
         }
     }
 
-    public void Stop()
+
+    public void StopMovement()
     {
         if (selectedPathController != null)
         {
@@ -136,80 +171,35 @@ public class Battle_Controller : MonoBehaviour {
         }
     }
 
-    public void TakeActionPoint()
+    public void KillPC(Character_Handler pc)
     {
-        if (selectedCharacter != null)
+        if (Battle_Loader.Instance.playerSquadMap.ContainsKey(pc.myChar.Name))
         {
-            if (selectedCharacter.currActionPoints > 1)
-            {
-                selectedCharacter.TakeAP();
-            }
-            else
-            {
-                selectedCharacter.TakeAP();
-                EndTurn();
-            }
-            
+            // Remove from player squad dictionary
+            Battle_Loader.Instance.playerSquadMap.Remove(pc.myChar.Name);
+        }
+     
+
+        // Check if player has lost all their units
+        if (Battle_Loader.Instance.playerSquadMap.Count < 1)
+        {
+            Battle_StateManager.Instance.Lose();
         }
     }
 
-    // Attack Controls
-    public void RangedAttack(float damage)
+    public void KillNPC(int enemyIndex)
     {
-        if (selectedCharacter != null)
+        if (Battle_Loader.Instance.enemySquadMap.ContainsKey(enemyIndex))
         {
-            // Do Damage
-            if (Mouse_Controller.Instance.EnemyUnderMouse != null)
-            {
-                currEnemy = Mouse_Controller.Instance.EnemyUnderMouse;
-                DamageUnit(10, currEnemy);
-            }
-
-            // Subtract AP
-            TakeActionPoint();
-        }
-   
-
-    }
-
-    void DamageUnit(float damage, Enemy_Handler enemy)
-    {
-        if (enemy != null && enemy.gameObject.activeSelf)
-        {
-            enemy.TakeDamage(damage);
-            Debug.Log(enemy.myChar.Name + " takes " + damage + " damage!");
+            // Remove from enemy squad dictionary
+            Battle_Loader.Instance.enemySquadMap.Remove(enemyIndex);
         }
 
-    }
 
-    public void EndTurn()
-    {
-        if (selectedCharacter != null)
+        // Check if enemy has lost all their units
+        if (Battle_Loader.Instance.enemySquadMap.Count < 1)
         {
-            selectedCharacter.EndTurn();
-
-            if (pathEnd != null)
-            {
-                ObjectPool.instance.PoolObject(pathEnd);
-            }
-
-            // Check if this is the end of player's turn
-            activePCChars--;
-
-            if (activePCChars == 0)
-            {
-                // Start enemy's turn
-                Battle_StateManager.Instance.EndPlayerTurn();
-            }
-            else
-            {
-                // Select the next character
-                PCSquadIndex++;
-                if (PCSquadIndex < Battle_Loader.Instance.playerSquad.Length)
-                {
-                    SelectPCCharacter(Battle_Loader.Instance.playerSquad[PCSquadIndex].Name);
-                }
-            }
+            Battle_StateManager.Instance.Win();
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-using System;
+
 
 public class Character_Handler : MonoBehaviour {
 
@@ -9,7 +9,14 @@ public class Character_Handler : MonoBehaviour {
     public int currActionPoints { get; protected set; }
     public PathController path_controller { get; protected set; }
 
+    int tileCoordX, tileCoordY;
 
+
+    public void GetRange()
+    {
+        path_controller = GetComponent<PathController>();
+        path_controller.SetRange(myChar.movementRange);
+    }
 
     public void SetCharacter(PC_Character c)
     {
@@ -23,7 +30,8 @@ public class Character_Handler : MonoBehaviour {
 
     void Start()
     {
-        path_controller = GetComponent<PathController>();
+        if (path_controller == null)
+            path_controller = GetComponent<PathController>();
     }
 
     public void TakeAP()
@@ -44,16 +52,27 @@ public class Character_Handler : MonoBehaviour {
         ResetActionPoints();
         path_controller.ResetMovementRange();
         path_controller.StopMovement();
+        GetComponent<SpriteRenderer>().color = Color.white;
+        GetCurrentTileCoords();
     }
 
     public void EndTurn()
     {
         GetComponent<SpriteRenderer>().color = Color.gray;
+        GetCurrentTileCoords();
     }
 
     public void ResetActionPoints()
     {
         currActionPoints = myChar.actionPoints;
+    }
+
+    public Vector2 GetCurrentTileCoords()
+    {
+        tileCoordX = Mathf.RoundToInt(transform.position.x);
+        tileCoordY = Mathf.RoundToInt(transform.position.y);
+
+        return new Vector2(tileCoordX, tileCoordY);
     }
 
 }

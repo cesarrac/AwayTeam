@@ -15,12 +15,13 @@ public class Battle_StateManager : MonoBehaviour {
 
     public static Battle_StateManager Instance { get; protected set; }
 
-    BattleState _state = BattleState.START;
+    public BattleState _state { get; protected set; }
     BattleState lastState;
 
     void OnEnable()
     {
         Instance = this;
+        _state = BattleState.START;
     }
 
     void Update()
@@ -57,6 +58,7 @@ public class Battle_StateManager : MonoBehaviour {
                 else
                 {
                     _state = BattleState.PLAYER_TURN;
+                    Battle_Controller.Instance.StartPlayerTurn();
                 }
                 
 
@@ -88,7 +90,11 @@ public class Battle_StateManager : MonoBehaviour {
         if (_state == BattleState.PLAYER_TURN)
         {
             Debug.Log("STATE: Ending Player turn");
+
+            // Check if there are any enemies left!
+
             _state = BattleState.ENEMY_TURN;
+            Battle_Controller.Instance.StartEnemyTurn();
         }
     }
 
@@ -96,11 +102,29 @@ public class Battle_StateManager : MonoBehaviour {
     {
         if (_state == BattleState.ENEMY_TURN)
         {
-            // Check if Player has Won or Lost. If neither, go to Next
+            Debug.Log("STATE: Ending Enemy turn");
+            _state = BattleState.PLAYER_TURN;
+
+            Battle_Controller.Instance.StartPlayerTurn();
 
         }
     }
 
+    public void Lose()
+    {
+        if (_state != BattleState.LOSE && _state != BattleState.WIN)
+        {
+            _state = BattleState.LOSE;
+        }
+    }
+
+    public void Win()
+    {
+        if (_state != BattleState.LOSE && _state != BattleState.WIN)
+        {
+            _state = BattleState.WIN;
+        }
+    }
 
     public void TestStates()
     {

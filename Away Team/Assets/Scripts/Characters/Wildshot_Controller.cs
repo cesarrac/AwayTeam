@@ -40,7 +40,7 @@ public class Wildshot_Controller : MonoBehaviour {
 
     void CheckRange()
     {
-        if (Battle_Controller.Instance.CalcDistanceToCursor(transform.position) <= range)
+        if (Player_BattleController.Instance.CalcDistanceToCursor(transform.position) <= char_handler.myChar.attackRange)
         {
             isInRange = true;
         }
@@ -54,7 +54,8 @@ public class Wildshot_Controller : MonoBehaviour {
     {
         if (Input.GetMouseButtonDown(1))
         {
-            Battle_Controller.Instance.RangedAttack(10);
+            Player_BattleController.Instance.PlayerRangedAttack(10);
+
         }
     }
 

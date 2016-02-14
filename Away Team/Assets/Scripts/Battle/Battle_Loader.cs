@@ -13,10 +13,11 @@ public class Battle_Loader : MonoBehaviour {
     public PC_Character[] playerSquad { get; protected set; }
     public bool isPlayerSquadLoaded { get; protected set; }
 
-    NPC_Character[] enemySquad;
+    public NPC_Character[] enemySquad { get; protected set; }
     public bool isEnemiesLoaded { get; protected set; }
 
     public Dictionary<string, Character_Handler> playerSquadMap { get; protected set; }
+    public Dictionary<int, Enemy_Handler> enemySquadMap { get; protected set; }
 
     void OnEnable()
     {
@@ -46,8 +47,8 @@ public class Battle_Loader : MonoBehaviour {
     {
         enemySquad = new NPC_Character[]
         {
-            new NPC_Character("Grunt", NPCClass.Grunt),
-            new NPC_Character("Grunt", NPCClass.Grunt)
+            new NPC_Character("Grunt_0", NPCClass.Grunt),
+            new NPC_Character("Grunt_1", NPCClass.Grunt)
         };
 
         enemySquad[0].InitStats(20, 5, 5, 5, 5, 5);
@@ -69,6 +70,8 @@ public class Battle_Loader : MonoBehaviour {
 
             pc.GetComponent<Character_Handler>().SetCharacter(character);
 
+            pc.GetComponent<PathController>().RegisterGetRangeCallback(pc.GetComponent<Character_Handler>().GetRange);
+
             x += 3;
 
             playerSquadMap.Add(character.Name, pc.GetComponent<Character_Handler>());
@@ -84,13 +87,26 @@ public class Battle_Loader : MonoBehaviour {
     {
         // Each class will have a unique sprite, so we spawn a gameobject by the character class.
         float x = 0;
+
+        // Init the Enemy Squad Map to store references to Enemy Handlers
+        enemySquadMap = new Dictionary<int, Enemy_Handler>();
+
+        // Index to easily access them through dictionary (this index represents the order they are spawned)
+        int index = 0;
+
         foreach (NPC_Character character in enemySquad)
         {
-            GameObject npc = ObjectPool.instance.GetObjectForType(character.npc_class.ToString(), true, new Vector3(x, 9, 0));
+            GameObject npc = ObjectPool.instance.GetObjectForType(character.npc_class.ToString(), true, new Vector3(x, 15, 0));
 
-            npc.GetComponent<Enemy_Handler>().SetCharacter(character);
+            npc.GetComponent<Enemy_Handler>().SetCharacter(character, index);
+
+            npc.GetComponent<PathController>().RegisterGetRangeCallback(npc.GetComponent<Enemy_Handler>().GetRange);
 
             x += 3;
+
+            enemySquadMap.Add(index, npc.GetComponent<Enemy_Handler>());
+
+            index++;
         }
 
         isEnemiesLoaded = true;

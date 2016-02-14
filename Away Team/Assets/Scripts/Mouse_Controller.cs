@@ -39,15 +39,17 @@ public class Mouse_Controller : MonoBehaviour {
 
         TrackDragMouse();
 
-        GetPathToPosition();
 
-        TileUnderMouse = GetTileAtMouse();
-        
-        if (TileUnderMouse != null)
+
+        if (Battle_StateManager.Instance._state == BattleState.PLAYER_TURN)
         {
-            cursorPosition = new Vector3(TileUnderMouse.posX, TileUnderMouse.posY, 0);
-            Battle_Controller.Instance.DisplayCursor(cursorPosition);
+            GetPathToPosition();
+
+            TileUnderMouse = GetTileAtMouse();
+
+       
         }
+
     }
 
     Tile GetTileAtMouse()
@@ -76,13 +78,21 @@ public class Mouse_Controller : MonoBehaviour {
         lastFramePosition.z = 0;
     }
 
+    public void DisplayPathCursor()
+    {
+        if (TileUnderMouse != null)
+        {
+            cursorPosition = new Vector3(TileUnderMouse.posX, TileUnderMouse.posY, 0);
+            Player_BattleController.Instance.DisplayCursor(cursorPosition);
+        }
+    }
 
     void GetPathToPosition()
     {
         // FIX THIS! ** Here we can add a check to make sure that the tile we just right clicked on is a WALKABLE tile
         if (Input.GetMouseButtonDown(1) && !MouseOverEnemy)
         {
-            Battle_Controller.Instance.Move(curMousePos);
+            Player_BattleController.Instance.PlayerMove(curMousePos);
         }
     }
 
@@ -100,5 +110,20 @@ public class Mouse_Controller : MonoBehaviour {
             return Vector3.zero;
         }
 
+    }
+
+    public bool CheckAttackRange(int range, Vector3 origin)
+    {
+        var diff = (curMousePos - origin).sqrMagnitude;
+
+        if (diff <= range)
+        {
+           
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }

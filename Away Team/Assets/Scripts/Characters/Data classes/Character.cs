@@ -40,7 +40,7 @@ public class Character {
 
     public int actionPoints { get; protected set; }
     public int movementRange { get; protected set; }
-
+    public int attackRange { get; protected set; }
 
 
     //public Character (string n, CharacterType t)
@@ -59,6 +59,9 @@ public class Character {
 
             // FIX THIS: Right now I'm giving everyone a hardcoded int for move range. This represents 5 tile spaces that they can move.
             movementRange = 5;
+
+            // FIX THIS: Right now I'm also doing the same thing for attack range. This should later depend on the weapon they have equipped
+            attackRange = 7;
         }
 
     }
